@@ -33,7 +33,7 @@ def unit_rows(fact, key):
 
 def main():
     req = Request(URL, headers={
-        "User-Agent": "SEC-Apple-Dashboard/1.0 https://github.com/jinawinwin/SEC_Apple",
+        "User-Agent": "SEC-Apple-Dashboard/1.0 (sec-dashboard@github.com)",
         "Accept": "application/json",
         "Accept-Encoding": "gzip, deflate",
         "Host": "data.sec.gov",
@@ -46,7 +46,11 @@ def main():
                 raw = gzip.decompress(raw)
             facts = get_facts(json.loads(raw.decode("utf-8")))
     except HTTPError as error:
-        detail = error.read(1200).decode("utf-8", errors="replace")
+        body = error.read()
+        if error.headers.get("Content-Encoding") == "gzip":
+            import gzip
+            body = gzip.decompress(body)
+        detail = body.decode("utf-8", errors="replace")
         raise RuntimeError(f"SEC Company Facts returned HTTP {error.code}: {detail}") from error
     result = {"annual": {}, "half_year": {}, "quarterly": {}}
     instant = {}
