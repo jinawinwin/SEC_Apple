@@ -11,7 +11,7 @@ Apple의 SEC 공시를 이용해 재무 성과를 확인하는 대시보드입�
 
 ## 자동 업데이트
 
-GitHub Actions가 매월 1일 00:00 UTC에 SEC Company Facts API에서 데이터를 다시 가져옵니다. 공시가 새로 제출된 뒤 수치가 반영됩니다. GitHub Actions 화면에서 수동 실행도 할 수 있습니다.
+GitHub Actions가 매월 1일 00:00 UTC에 SEC Company Facts API에서 데이터를 다시 가져옵니다. 공시가 새로 제출된 뒤 수치가 반영됩니다. 첫 수집 전 저장소 Settings → Secrets and variables → Actions에 `SEC_CONTACT_EMAIL` secret(모니터링 가능한 연락 이메일)을 추가해야 합니다. 이메일은 저장소 코드에 공개되지 않습니다. GitHub Actions 화면에서 수동 실행도 할 수 있습니다.
 
 출처는 [SEC Company Facts API](https://www.sec.gov/edgar/sec-api-documentation), Apple CIK 0000320193입니다. 금액은 USD millions, EPS는 USD이며 SEC XBRL GAAP 태그를 사용합니다. 반기는 6개월 누적 공시, 분기는 SEC 분기 공시 기준입니다.
 
