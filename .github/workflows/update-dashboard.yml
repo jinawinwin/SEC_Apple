@@ -6,7 +6,7 @@ on:
       - "data/financials.json"
   workflow_dispatch:
   schedule:
-    - cron: "0 0 1 * *"
+    - cron: "0 0 5 * *"
 permissions:
   contents: write
   pages: write
