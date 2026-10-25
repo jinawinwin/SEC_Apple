@@ -8,7 +8,7 @@ Apple의 SEC 공시를 이용해 재무 성과를 확인하는 대시보드입�
 - 하단: Annual, Half-year, Quarterly 수치 테이블
 - 우측 플로팅 메뉴: 대시보드 PDF 저장, 기간별 Excel 다운로드
 - 분석: 전년 대비 매출·순이익 성장률, 매출총이익률·영업이익률·순이익률, 잉여현금흐름률, 현금전환율, 자본적지출률, 부채/자산 및 현금/부채 비율
-- 국내 Peer Firms: 삼성전자, LG전자
+- Global Peer Firms: 삼성전자, 샤오미, Alphabet, Microsoft, Sony
 
 ## 자동 업데이트
 
@@ -18,11 +18,15 @@ GitHub Actions가 매월 1일 00:00 UTC에 SEC Company Facts API에서 데이터
 
 출처는 [SEC Company Facts API](https://www.sec.gov/edgar/sec-api-documentation), Apple CIK 0000320193입니다. 금액은 USD millions, EPS는 USD이며 SEC XBRL GAAP 태그를 사용합니다. 반기는 6개월 누적 공시, 분기는 SEC 분기 공시 기준입니다.
 
-## 국내 Peer Firms
+## Global Peer Firms
 
-| 기업 | 종목 코드 | 비교 근거 |
-|---|---|---|
-| 삼성전자 | 005930.KS | 스마트폰·태블릿·PC·반도체를 아우르며 Apple의 하드웨어 시장과 가장 넓게 겹칩니다. |
-| LG전자 | 066570.KS | 가전·TV·IT 기기 중심의 글로벌 소비자 전자제품 기업으로 프리미엄 기기 및 브랜드 시장에서 비교할 수 있습니다. |
+| 기업 | 종목 코드 | 주요 비교 영역 | 선정 근거 | 자료 |
+|---|---|---|---|---|
+| 삼성전자 | 005930.KS | 스마트폰·태블릿·웨어러블 | Galaxy 기기 생태계가 iPhone·iPad·Apple Watch와 경쟁합니다. 반도체·가전 사업도 있어 전사 실적 비교에는 주의가 필요합니다. | [사업보고서](https://www.samsung.com/sec/ir/reports-disclosures/public-disclosure/3755/) |
+| 샤오미 | 1810.HK | 스마트폰·태블릿·웨어러블·IoT | 스마트폰과 연결 기기 생태계가 Apple의 하드웨어 사업과 겹칩니다. 전기차 사업의 비중은 별도로 고려해야 합니다. | [투자자 자료](https://ir.mi.com/corporate-information/company-profile) |
+| Alphabet | GOOGL / GOOG | 모바일 OS·앱 플랫폼·디지털 서비스·기기 | Android·Google Play·Pixel과 구독 서비스가 iOS·App Store·iPhone 및 Apple 서비스와 겹칩니다. 광고·클라우드 사업 비중이 큽니다. | [2025 Form 10-K](https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/goog-20251231.htm) |
+| Microsoft | MSFT | PC·운영체제·생산성 서비스 | Surface·Windows·Microsoft 365가 Mac·macOS 및 Apple의 기기·서비스 생태계와 일부 겹칩니다. 기업용 클라우드 비중이 큽니다. | [2025 Annual Report](https://www.microsoft.com/investor/reports/ar25/index.html) |
+| Sony Group | 6758.T | 소비자 기기·콘텐츠 서비스 | 오디오·카메라·게임·영상 콘텐츠에서 Apple의 기기와 콘텐츠 서비스 사업을 부분적으로 비교할 수 있습니다. | [기업 개요](https://www.sony.com/en/SonyInfo/CorporateInfo/) |
 
-Peer는 사업·제품 유사성을 기준으로 한 참고 비교이며, 공급망 부품 업체는 제외했습니다. 이 자료는 투자 조언이 아닙니다.
+이 목록은 **사업 영역별 비교 대상**입니다. 모든 사업과 회계 기준이 Apple과 일치한다는 의미가 아니며, 현재 대시보드의 재무 수치는 Apple 공시만 포함합니다.
+
