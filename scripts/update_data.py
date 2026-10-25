@@ -18,8 +18,16 @@ TAGS = {
     "assets": ["Assets"], "liabilities": ["Liabilities"],
     "operating_cash_flow": ["NetCashProvidedByUsedInOperatingActivities"],
     "capex": ["PaymentsToAcquirePropertyPlantAndEquipment"],
+    "research_and_development": ["ResearchAndDevelopmentExpense"],
+    "selling_general_admin": ["SellingGeneralAndAdministrativeExpense"],
+    "current_assets": ["AssetsCurrent"],
+    "current_liabilities": ["LiabilitiesCurrent"],
 }
-INSTANT = {"cash", "assets", "liabilities"}
+INSTANT = {"cash", "assets", "liabilities", "current_assets", "current_liabilities"}
+
+def normalize(value, metric):
+    """Store money in USD millions and per-share facts in USD."""
+    return value if metric.startswith("eps_") else round(value / 1_000_000, 3)
 
 def get_facts(payload):
     facts = payload.get("facts", {}).get("us-gaap", {})
@@ -56,7 +64,7 @@ def main():
             body = gzip.decompress(body)
         detail = body.decode("utf-8", errors="replace")
         raise RuntimeError(f"SEC Company Facts returned HTTP {error.code}: {detail}") from error
-    result = {"annual": {}, "half_year": {}, "quarterly": {}}
+    result = {"annual": {}, "half_year": {}, "quarterly": {}, "nine_month": {}}
     instant = {}
     for metric, fact in facts.items():
         for row in unit_rows(fact, metric):
@@ -66,10 +74,10 @@ def main():
             start = date.fromisoformat(row["start"]) if row.get("start") else None
             filed = row.get("filed", "")
             if metric in INSTANT:
-                prev = instant.get(end.isoformat(), {}).get("_filed", "")
-                if filed >= prev:
-                    instant.setdefault(end.isoformat(), {})[metric] = row["val"]
-                    instant[end.isoformat()]["_filed"] = filed
+                point = instant.setdefault(end.isoformat(), {})
+                if filed >= point.get(f"_filed_{metric}", ""):
+                    point[metric] = normalize(row["val"], metric)
+                    point[f"_filed_{metric}"] = filed
                 continue
             if not start:
                 continue
@@ -78,27 +86,47 @@ def main():
                 kind = "annual"
             elif row["form"] == "10-Q" and 150 <= days <= 200:
                 kind = "half_year"
+            elif row["form"] == "10-Q" and 240 <= days <= 300:
+                kind = "nine_month"
             elif row["form"] == "10-Q" and 70 <= days <= 110:
                 kind = "quarterly"
             else:
                 continue
             key = (end.isoformat(), start.isoformat())
-            current = result[kind].setdefault(key, {"end": end.isoformat(), "period": f"{row.get('fy', '')} {row.get('fp', '')}".strip(), "_filed": ""})
-            if filed >= current["_filed"]:
-                current[metric] = row["val"]
-                current["_filed"] = filed
+            current = result[kind].setdefault(key, {"end": end.isoformat(), "period": f"{row.get('fy', '')} {row.get('fp', '')}".strip()})
+            if filed >= current.get(f"_filed_{metric}", ""):
+                current[metric] = normalize(row["val"], metric)
+                current[f"_filed_{metric}"] = filed
     for kind, periods in result.items():
         cleaned = []
         for item in periods.values():
-            item.pop("_filed", None)
-            item.pop("start", None)
-            item.update({k: v for k, v in instant.get(item["end"], {}).items() if k != "_filed"})
+            for key in list(item):
+                if key.startswith("_filed_"):
+                    item.pop(key)
+            item.update({k: v for k, v in instant.get(item["end"], {}).items() if not k.startswith("_filed_")})
             if item.get("capex") is not None:
                 item["capex"] = abs(item["capex"])
             if item.get("operating_cash_flow") is not None and item.get("capex") is not None:
                 item["free_cash_flow"] = item["operating_cash_flow"] - item["capex"]
             cleaned.append(item)
         result[kind] = sorted(cleaned, key=lambda x: x["end"], reverse=True)
+    for year in result["annual"]:
+        candidates = [x for x in result["nine_month"] if 70 <= (date.fromisoformat(year["end"]) - date.fromisoformat(x["end"])).days <= 110]
+        if not candidates:
+            continue
+        prior = min(candidates, key=lambda x: abs((date.fromisoformat(year["end"]) - date.fromisoformat(x["end"])).days - 91))
+        quarter = {"end": year["end"], "period": f"{year.get('period', '')} Q4".strip()}
+        for metric in TAGS:
+            if metric in INSTANT and metric in year:
+                quarter[metric] = year[metric]
+            elif metric not in INSTANT and not metric.startswith("eps_") and metric in year and metric in prior:
+                quarter[metric] = round(year[metric] - prior[metric], 3)
+        if quarter.get("operating_cash_flow") is not None and quarter.get("capex") is not None:
+            quarter["free_cash_flow"] = round(quarter["operating_cash_flow"] - quarter["capex"], 3)
+        if any(k in quarter for k in ("revenue", "net_income")):
+            result["quarterly"].append(quarter)
+    result["quarterly"].sort(key=lambda x: x["end"], reverse=True)
+    result.pop("nine_month")
     result["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     result["source"] = URL
     OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -107,4 +135,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
