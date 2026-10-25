@@ -110,6 +110,23 @@ def main():
                 item["free_cash_flow"] = item["operating_cash_flow"] - item["capex"]
             cleaned.append(item)
         result[kind] = sorted(cleaned, key=lambda x: x["end"], reverse=True)
+    for cumulative_kind, previous_kind, label in (("half_year", "quarterly", "Q2"), ("nine_month", "half_year", "Q3")):
+        for cumulative in result[cumulative_kind]:
+            candidates = [x for x in result[previous_kind] if 70 <= (date.fromisoformat(cumulative["end"]) - date.fromisoformat(x["end"])).days <= 110]
+            if not candidates:
+                continue
+            previous = min(candidates, key=lambda x: abs((date.fromisoformat(cumulative["end"]) - date.fromisoformat(x["end"])).days - 91))
+            quarter = next((x for x in result["quarterly"] if x["end"] == cumulative["end"]), None)
+            if quarter is None:
+                quarter = {"end": cumulative["end"], "period": f"{cumulative.get('period', '')} {label}".strip()}
+                result["quarterly"].append(quarter)
+            for metric in TAGS:
+                if metric in INSTANT and metric in cumulative:
+                    quarter.setdefault(metric, cumulative[metric])
+                elif metric not in INSTANT and not metric.startswith("eps_") and metric in cumulative and metric in previous:
+                    quarter.setdefault(metric, round(cumulative[metric] - previous[metric], 3))
+            if quarter.get("operating_cash_flow") is not None and quarter.get("capex") is not None:
+                quarter["free_cash_flow"] = round(quarter["operating_cash_flow"] - quarter["capex"], 3)
     for year in result["annual"]:
         candidates = [x for x in result["nine_month"] if 70 <= (date.fromisoformat(year["end"]) - date.fromisoformat(x["end"])).days <= 110]
         if not candidates:
@@ -135,3 +152,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
