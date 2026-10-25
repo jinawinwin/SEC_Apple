@@ -16,12 +16,23 @@ concurrency:
   cancel-in-progress: false
 jobs:
   refresh:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Check SEC contact configuration
+        env:
+          SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL }}
+        run: |
+          if [ -z "$SEC_CONTACT_EMAIL" ]; then
+            echo "::error title=SEC contact missing::Add SEC_CONTACT_EMAIL under Settings > Secrets and variables > Actions before refreshing data."
+            exit 1
+          fi
       - name: Refresh SEC data
         env:
           SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL }}
@@ -35,10 +46,10 @@ jobs:
           git push
   deploy:
     needs: refresh
-    if: always()
+    if: always() && (needs.refresh.result == 'success' || needs.refresh.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: main
       - uses: actions/configure-pages@v5
@@ -46,4 +57,3 @@ jobs:
         with:
           path: .
       - uses: actions/deploy-pages@v4
-

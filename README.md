@@ -12,7 +12,7 @@ Apple의 SEC 공시를 이용해 재무 성과를 확인하는 대시보드입�
 
 ## 자동 업데이트
 
-GitHub Actions가 매월 1일 00:00 UTC에 SEC Company Facts API에서 데이터를 다시 가져옵니다. 공시가 새로 제출된 뒤 수치가 반영됩니다. 첫 수집 전 저장소 Settings → Secrets and variables → Actions에 `SEC_CONTACT_EMAIL` secret(모니터링 가능한 연락 이메일)을 추가해야 합니다. 이메일은 저장소 코드에 공개되지 않습니다. GitHub Actions 화면에서 수동 실행도 할 수 있습니다.
+GitHub Actions가 매월 1일 00:00 UTC에 SEC Company Facts API에서 데이터를 다시 가져옵니다. 공시가 새로 제출된 뒤 수치가 반영됩니다. 첫 수집 전 [Actions Secrets 설정](https://github.com/jinawinwin/SEC_Apple/settings/secrets/actions)에서 **New repository secret**을 눌러 이름 `SEC_CONTACT_EMAIL`, 값은 모니터링 가능한 연락 이메일로 추가해야 합니다. 이메일은 저장소 코드에 공개되지 않습니다. 설정 후 Actions → Update Apple SEC dashboard → Run workflow로 수동 수집할 수 있습니다. 코드 변경 시에는 수집하지 않고 Pages만 배포합니다.
 
 **현재 상태:** `data/financials.json`의 연간·반기·분기 배열이 비어 있어 실제 분석값은 아직 표시되지 않습니다. `SEC_CONTACT_EMAIL` 설정 후 수집 작업이 성공하면 대시보드가 저장된 데이터로 자동 계산합니다.
 
@@ -29,4 +29,3 @@ GitHub Actions가 매월 1일 00:00 UTC에 SEC Company Facts API에서 데이터
 | Sony Group | 6758.T | 소비자 기기·콘텐츠 서비스 | 오디오·카메라·게임·영상 콘텐츠에서 Apple의 기기와 콘텐츠 서비스 사업을 부분적으로 비교할 수 있습니다. | [기업 개요](https://www.sony.com/en/SonyInfo/CorporateInfo/) |
 
 이 목록은 **사업 영역별 비교 대상**입니다. 모든 사업과 회계 기준이 Apple과 일치한다는 의미가 아니며, 현재 대시보드의 재무 수치는 Apple 공시만 포함합니다.
-

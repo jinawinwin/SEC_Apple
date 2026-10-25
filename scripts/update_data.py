@@ -144,6 +144,8 @@ def main():
             result["quarterly"].append(quarter)
     result["quarterly"].sort(key=lambda x: x["end"], reverse=True)
     result.pop("nine_month")
+    if not result["annual"] or not result["quarterly"]:
+        raise RuntimeError("SEC response contained no annual or quarterly Apple facts; keeping the existing dataset unchanged.")
     result["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     result["source"] = URL
     OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -152,4 +154,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
