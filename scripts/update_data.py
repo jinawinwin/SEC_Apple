@@ -33,7 +33,7 @@ def unit_rows(fact, key):
 
 def main():
     req = Request(URL, headers={
-        "User-Agent": "SEC-Apple-Dashboard/1.0 (sec-dashboard@github.com)",
+        "User-Agent": "Apple SEC Dashboard/1.0 311670560+jinawinwin@users.noreply.github.com",
         "Accept": "application/json",
         "Accept-Encoding": "gzip, deflate",
         "Host": "data.sec.gov",
