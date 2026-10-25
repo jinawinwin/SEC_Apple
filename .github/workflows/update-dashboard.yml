@@ -23,6 +23,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Refresh SEC data
+        env:
+          SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL }}
         run: python scripts/update_data.py
       - name: Commit refreshed data
         run: |
@@ -33,6 +35,7 @@ jobs:
           git push
   deploy:
     needs: refresh
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
