@@ -28,8 +28,11 @@ function renderAnalysis(dataset) {
     ['최근 분기 잉여현금흐름률', ratio(q.free_cash_flow, q.revenue), q.end, '잉여현금흐름 ÷ 매출'],
     ['최근 연간 현금전환율', ratio(a.operating_cash_flow, a.net_income), a.end, '영업현금흐름 ÷ 순이익'],
     ['최근 연간 자본적지출률', ratio(a.capex, a.revenue), a.end, '자본적지출 ÷ 매출'],
+    ['최근 연간 연구개발비율', ratio(a.research_and_development, a.revenue), a.end, '연구개발비 ÷ 매출'],
+    ['최근 연간 EPS 성장률', growth(a.eps_diluted, prevA?.eps_diluted), a.end, '희석 EPS 전년 대비'],
     ['부채비율 (자산 대비)', ratio(q.liabilities ?? a.liabilities, q.assets ?? a.assets), q.end || a.end, '부채총계 ÷ 자산총계'],
-    ['현금 대비 부채', ratio(q.cash ?? a.cash, q.liabilities ?? a.liabilities), q.end || a.end, '현금 및 현금성자산 ÷ 부채총계']
+    ['현금 대비 부채', ratio(q.cash ?? a.cash, q.liabilities ?? a.liabilities), q.end || a.end, '현금 및 현금성자산 ÷ 부채총계'],
+    ['유동비율', ratio(q.current_assets ?? a.current_assets, q.current_liabilities ?? a.current_liabilities), q.end || a.end, '유동자산 ÷ 유동부채']
   ].filter(x => x[1] != null && Number.isFinite(x[1]));
   cards.innerHTML = items.map(([label, value, end, note]) =>
     `<article class="card"><div class="small">${label}</div><strong class="${value < 0 ? 'negative' : ''}">${pct(value)}</strong><p class="small">${end || '—'} · ${note}</p></article>`
@@ -68,7 +71,7 @@ function renderAnalysis(dataset) {
     ...half.slice(0, 8).map(r => derived('반기', r, priorYear(half, r))),
     ...quarterly.slice(0, 12).map(r => derived('분기', r, priorYear(quarterly, r)))
   ];
-  const cols = [['kind','구분'], ['period','기간'], ['revenue_growth','매출 성장률'], ['net_growth','순이익 성장률'], ['gross_margin','매출총이익률'], ['operating_margin','영업이익률'], ['net_margin','순이익률'], ['fcf_margin','잉여현금흐름률'], ['cash_conversion','현금전환율'], ['liabilities_assets','부채/자산']];
+  const cols = [['kind','구분'], ['period','기간'], ['revenue_growth','매출 성장률'], ['net_growth','순이익 성장률'], ['gross_margin','매출총이익률'], ['operating_margin','영업이익률'], ['net_margin','순이익률'], ['fcf_margin','잉여현금흐름률'], ['cash_conversion','현금전환율'], ['research_intensity','연구개발비율'], ['liabilities_assets','부채/자산'], ['current_ratio','유동비율']];
   table.innerHTML = `<thead><tr>${cols.map(([, label])=>`<th>${label}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(([key])=>`<td>${key === 'kind' || key === 'period' ? escapeHtml(r[key]) : pct(r[key])}</td>`).join('')}</tr>`).join('')}</tbody>`;
 }
 function sorted(rows) { return [...(rows || [])].sort((a,b)=>(b.end || '').localeCompare(a.end || '')); }
@@ -81,7 +84,8 @@ function priorYear(rows, row) {
     .sort((a,b)=>Math.abs((target-Date.parse(a.end))/86400000-365)-Math.abs((target-Date.parse(b.end))/86400000-365))[0] || null;
 }
 function derived(kind, r, p) {
-  return {kind, period:r.period || r.end || '—', revenue_growth:growth(r.revenue,p?.revenue), net_growth:growth(r.net_income,p?.net_income), gross_margin:ratio(r.gross_profit,r.revenue), operating_margin:ratio(r.operating_income,r.revenue), net_margin:ratio(r.net_income,r.revenue), fcf_margin:ratio(r.free_cash_flow,r.revenue), cash_conversion:ratio(r.operating_cash_flow,r.net_income), liabilities_assets:ratio(r.liabilities,r.assets)};
+  return {kind, period:r.period || r.end || '—', revenue_growth:growth(r.revenue,p?.revenue), net_growth:growth(r.net_income,p?.net_income), gross_margin:ratio(r.gross_profit,r.revenue), operating_margin:ratio(r.operating_income,r.revenue), net_margin:ratio(r.net_income,r.revenue), fcf_margin:ratio(r.free_cash_flow,r.revenue), cash_conversion:ratio(r.operating_cash_flow,r.net_income), research_intensity:ratio(r.research_and_development,r.revenue), liabilities_assets:ratio(r.liabilities,r.assets), current_ratio:ratio(r.current_assets,r.current_liabilities)};
 }
 function pct(v) { return v == null || !Number.isFinite(v) ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`; }
 function escapeHtml(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
