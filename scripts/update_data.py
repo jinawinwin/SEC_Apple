@@ -2,6 +2,7 @@
 """Fetch Apple facts from SEC and publish annual, half-year and quarter data."""
 from datetime import date, datetime, timezone
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 import json
 
@@ -31,9 +32,22 @@ def unit_rows(fact, key):
     return units.get(unit, [])
 
 def main():
-    req = Request(URL, headers={"User-Agent": "Apple-SEC-Dashboard github.com/jinawinwin/SEC_Apple admin@users.noreply.github.com"})
-    with urlopen(req, timeout=45) as response:
-        facts = get_facts(json.loads(response.read().decode("utf-8")))
+    req = Request(URL, headers={
+        "User-Agent": "SEC-Apple-Dashboard/1.0 https://github.com/jinawinwin/SEC_Apple",
+        "Accept": "application/json",
+        "Accept-Encoding": "gzip, deflate",
+        "Host": "data.sec.gov",
+    })
+    try:
+        with urlopen(req, timeout=45) as response:
+            raw = response.read()
+            if response.info().get("Content-Encoding") == "gzip":
+                import gzip
+                raw = gzip.decompress(raw)
+            facts = get_facts(json.loads(raw.decode("utf-8")))
+    except HTTPError as error:
+        detail = error.read(1200).decode("utf-8", errors="replace")
+        raise RuntimeError(f"SEC Company Facts returned HTTP {error.code}: {detail}") from error
     result = {"annual": {}, "half_year": {}, "quarterly": {}}
     instant = {}
     for metric, fact in facts.items():
